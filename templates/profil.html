@@ -1,0 +1,14 @@
+{% extends "template.html" %}
+{% block content %}
+    <h2>Profil personnel</h2>
+    <h5>Prénom</h5>
+    <p>{{ prenom }}</p>
+    <h5>Nom</h5>
+    <p>{{ nom }}</p>
+    <h5>Identifiant</h5>
+    <p>{{ identifiant }}</p>
+    <h5>Courriel</h5>
+    <p>{{ courriel }}</p>
+    <h5>Photo</h5>
+    <img src="data:image/png;base64,{{ photo }}" alt="Photo de profil">
+{% endblock %}

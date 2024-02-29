@@ -1,0 +1,40 @@
+{% extends "template.html" %}
+{% block content %}
+    <!-- Afficher une grille avec tous les utilisateurs -->
+    <div id="liste" class="table-responsive text-center">
+        <table class="table align-middle table-secondary caption-top table-bordered mt-5">
+    <caption class="text-center h2">Liste des utilisateurs</caption>
+        <thead class="table-primary">
+            <tr>
+                <th scope="col">Identifiant</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Courriel</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for utilisateur in liste %}
+                <tr>
+                    <td>{{ utilisateur.identifiant }}</td>
+                    <td>{{ utilisateur.prenom }} {{ utilisateur.nom }}</td>
+                    <td>{{ utilisateur.courriel }}</td>
+                    <td style="width: 12%" class="border-0">
+                        <div class="d-flex justify-content-between">
+                            <form class="mr-2" method="get" action="{{ url_for('modifier_utilisateur') }}">
+                            <input type="hidden" name="id_utilisateur" value="{{ utilisateur.id_utilisateur }}">
+                            <button type="submit" class="btn btn-success">Modifier</button>
+                        </form>
+                        <form method="post" action="{{ url_for('supprimer_utilisateur') }}">
+                            <input type="hidden" name="id_utilisateur" value="{{ utilisateur.id_utilisateur }}">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="get" action="{{ url_for('ajouter_utilisateur') }}">
+        <button type="submit" class="btn btn-primary mt-4">Ajouter un utilisateur</button>
+    </form>
+    </div>
+{% endblock %}

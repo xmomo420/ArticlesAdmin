@@ -1,0 +1,51 @@
+{% extends "template.html" %}
+{% block content %}
+<!-- Conteneur pour le formulaire -->
+    <div id="formulaire" class="card p-4 mt-4 text-center">
+        <!-- Si la validation a échoué -->
+        {% if message %}
+            <div class="alert alert-danger" role="alert">
+                <h3 class="alert-heading">{{ message }}</h3>
+            </div>
+        {% endif %}
+        <!-- Formulaire -->
+        <form class="d-flex flex-column align-items-center" method="post" action="{{ url_for('modifier_utilisateur') }}" enctype="multipart/form-data">
+            <h2 class="mb-3">Modifications</h2>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="prenom">Prénom</label>
+                <input class="form-control border border-dark border-2" id="prenom" type="text" name="prenom" value="{{ prenom }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="nom">Nom</label>
+                <input class="form-control border border-dark border-2" id="nom" type="text" name="nom" value="{{ nom }}">
+            </div>
+            <div>
+                <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
+                <input class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant" value="{{ identifiant }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="courriel">Courriel</label>
+                <input class="form-control border border-dark border-2" id="courriel" type="email" name="courriel" value="{{ courriel }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmer courriel</label>
+                <input class="form-control border border-dark border-2" id="confirmation_courriel" type="email" name="confirmation_courriel">
+            </div>
+            <div class="mb-3">
+                <img src="data:image/png;base64,{{ photo }}" alt="Photo de profil">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="photo">Photo de profil</label>
+                <input class="form-control border border-dark border-2" id="photo" type="file" accept="image/png" name="photo">
+            </div>
+            <div class="mb-3">
+                <button class="btn btn-primary" type="submit">Soumettre</button>
+            </div>
+    </form>
+    {% if succes %} <!-- Afficher un bouton pour afficher le formulaire à nouveau -->
+        <div class="mb-3 text-center">
+        <button onclick="afficherFormulaire()" class="btn btn-primary">Ajouter un autre utilisateur</button>
+    </div>
+    {% endif %}
+    </div>
+{% endblock %}

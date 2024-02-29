@@ -1,0 +1,63 @@
+{% extends "template.html" %}
+{% block content %}
+    <!-- Conteneur pour le formulaire -->
+    <div id="formulaire" class="card p-4 mt-4 text-center">
+        <!-- S'il y a un message dans les paramètres -->
+        {% if message %}
+            {% if succes %} <!-- Si l'utilisateur a été ajouté avec succès -->
+                <div class="alert alert-success" role="alert">
+                    <h3 class="alert-heading">{{ message }}</h3>
+                </div>
+                <script>masquerFormulaire()</script> <!-- On masque le formulaire -->
+            {% else %} <!-- Erreur lors de la validation -->
+                <div class="alert alert-danger" role="alert">
+                    <h3 class="alert-heading">{{ message }}</h3>
+                </div>
+            {% endif %}
+        {% endif %}
+        <!-- Formulaire -->
+        <form class="d-flex flex-column align-items-center" method="post" action="{{ url_for('utilisateur') }}" enctype="multipart/form-data">
+            <h2 class="mb-3">Nouvel utilisateur</h2>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="prenom">Prénom</label>
+                <input class="form-control border border-dark border-2" id="prenom" type="text" name="prenom">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="nom">Nom</label>
+                <input class="form-control border border-dark border-2" id="nom" type="text" name="nom">
+            </div>
+            <div>
+                <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
+                <input class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="courriel">Courriel</label>
+                <input class="form-control border border-dark border-2" id="courriel" type="email" name="courriel">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmer courriel</label>
+                <input class="form-control border border-dark border-2" id="confirmation_courriel" type="email" name="confirmation_courriel">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="mot_de_passe">Mot de passe</label>
+                <input class="form-control border border-dark border-2" id="mot_de_passe" type="password" name="mot_de_passe">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="confirmation_mot_de_passe">Confirmer mot de passe</label>
+                <input class="form-control border border-dark border-2" id="confirmation_mot_de_passe" type="password" name="confirmation_mot_de_passe">
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="photo">Photo de profil</label>
+                <input class="form-control border border-dark border-2" id="photo" type="file" accept="image/png" name="photo">
+            </div>
+            <div class="mb-3">
+                <button class="btn btn-primary" type="submit">Soumettre</button>
+            </div>
+    </form>
+    {% if succes %} <!-- Afficher un bouton pour afficher le formulaire à nouveau -->
+        <div class="mb-3 text-center">
+        <button onclick="afficherFormulaire()" class="btn btn-primary">Ajouter un autre utilisateur</button>
+    </div>
+    {% endif %}
+    </div>
+{% endblock %}

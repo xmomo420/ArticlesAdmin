@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -12,41 +12,59 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <title>{{ nom_page }}</title>
 </head>
-<body>
-<!-- En tête : 'Administrateur' tout à droite, 'Déconnexion' si déja connecté. -->
-<!-- À gauche : Lien vers 'Accueil', barre de recherche (surbrillance patron recherché) dans 'index' seulement -->
-<!-- Lien vers /utilisateurs dans '/admin' -->
-<nav class="navbar sticky-top navbar-dark bg-primary"> <!-- Barre de navigation horizontale -->
+<body class="bg-info-subtle">
+<!-- Barre de navigation horizontale -->
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-primary-subtle border border-2 border-black rounded-bottom">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Accueil</a> <!-- Lien vers la page d'accueil -->
-        <ul class="navbar-nav">
+        <!-- Lien vers la page d'accueil -->
+        <a class="navbar-brand text-black  fw-bold" href="{{ url_for('index') }}">Accueil</a>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <!-- Reste des éléments -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('admin') }}">Administrateur</a>
-            </li>
-            {% if session['id_session'] %} <!-- Si l'utilisateur est authentifié -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('utilisateur') }}">Utilisateurs</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ url_for('profil') }}">Profil
-                        <img src="../static/images/Icône%20-%20profil.png" alt="Profil" width="35" height="35">
+            {% if session['id_session'] %} <!-- Si l'utilisateur est connecté -->
+                <li class="nav-item dropdown mx-4">
+                    <a id="navbarDropdown" class="nav-link dropdown-toggle text-black"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#">Administration
                     </a>
+                    <ul class="dropdown-menu bg-primary-subtle text-light-emphasis" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item text-black" href="{{ url_for('admin') }}">Gestion articles</a></li>
+                        <li><a class="dropdown-item text-black" href="{{ url_for('utilisateur') }}">Gestion utilisateurs</a></li>
+                        <li><hr class="dropdown-divider text-black"></li>
+                        <li>
+                            <a class="dropdown-item fw-light text-black" href="{{ url_for('profil') }}">Profil
+                                <img src="{{ url_for('static', filename='images/Icône - profil.png') }}" alt="Profil" width="40" height="40">
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                <li class="nav-item ml-auto">
-                    <form action="{{ url_for('logout') }}">
-                        <button class="btn btn-danger" type="submit">Déconnexion</button>
-                    </form>
+            {% else %}
+                <li class="nav-item mx-4">
+                    <a class="nav-link text-black" href="{{ url_for('admin') }}">Administration</a>
                 </li>
+            {% endif %}
+        </ul>
+        <ul class="navbar-nav ms-auto-auto mb-2 mb-lg-0">
+            {% if session['id_session'] %}
+            <li class="nav-item ms-auto">
+                <a href="{{ url_for('logout') }}">
+                    <button class="btn btn-danger" type="button">Déconnexion</button>
+                </a>
+            </li>
             {% endif %}
         </ul>
     </div>
 </nav>
+<!-- Si l'administrateur s'est déconnecté -->
 {% if message_logout %}
-        <div class="alert alert-success text-center mt-4" role="alert">
-            <h3 class="alert-heading">{{ message_logout }}</h3>
-        </div>
-    {% endif %}
+    <div class="container alert alert-success text-center mt-4" role="alert">
+        <h3 class="alert-heading">{{ message_logout }}</h3>
+    </div>
+{% endif %}
+<!-- Si l'administrateur s'est désactivé lui-même -->
+{% if message_desactivation %}
+    <div class="container alert alert-danger text-center mt-4" role="alert">
+        <h3 class="alert-heading">{{ message_desactivation}}</h3>
+    </div>
+{% endif %}
 {% block content %}{% endblock %}
 </body>
 </html>

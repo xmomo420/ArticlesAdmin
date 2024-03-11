@@ -1,3 +1,42 @@
 {% extends "template.html" %}
 {% block content %}
+    <div id="liste" class="container table-responsive text-center">
+        <!-- Si un article a été modifié/ajouté -->
+        {% if message %}
+            <div class="mt-4 alert alert-success" role="alert">
+                <h3 class="alert-heading">{{ message }}</h3>
+            </div>
+        {% endif %}
+        <!-- Afficher une grille avec tous les articles -->
+        <table style="width: 50%" class="table align-middle table-secondary caption-top table-bordered mt-5 mx-auto">
+        <caption class="text-center h2">Liste des articles</caption>
+        <thead class="table-primary">
+            <tr>
+                <th scope="col">Titre</th>
+                <th scope="col">Date de publication</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if liste %}
+            {% for article in liste %}
+                <tr>
+                    <td>{{ article.titre }}</td>
+                    <td>{{ article.date }}</td>
+                    <td style="width: 10%">
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_modifier', identifiant=article.identifiant) }}">
+                                <button type="button" class="btn btn-success">Modifier</button>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('admin_nouveau') }}">
+        <button type="submit" class="btn btn-primary btn-lg mb-4 mt-4">Ajouter un article</button>
+    </a>
+    </div>
 {% endblock %}

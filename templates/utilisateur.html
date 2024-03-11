@@ -1,40 +1,57 @@
 {% extends "template.html" %}
 {% block content %}
-    <!-- Afficher une grille avec tous les utilisateurs -->
+    <!-- Si un utilisateur a été modifié/supprimé -->
     <div id="liste" class="table-responsive text-center">
-        <table class="table align-middle table-secondary caption-top table-bordered mt-5">
+        {% if message %}
+            <div class="container alert alert-success mt-4" role="alert">
+                <h3 class="alert-heading">{{ message }}</h3>
+            </div>
+        {% endif %}
+        <!-- Afficher une grille avec tous les utilisateurs -->
+        <table style="width: 80%" class="table align-middle table-secondary caption-top table-bordered mt-5 mx-auto">
     <caption class="text-center h2">Liste des utilisateurs</caption>
         <thead class="table-primary">
             <tr>
                 <th scope="col">Identifiant</th>
                 <th scope="col">Nom</th>
                 <th scope="col">Courriel</th>
+                <th scope="col">Statut</th>
+                <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
+        {% if liste %}
             {% for utilisateur in liste %}
                 <tr>
                     <td>{{ utilisateur.identifiant }}</td>
                     <td>{{ utilisateur.prenom }} {{ utilisateur.nom }}</td>
                     <td>{{ utilisateur.courriel }}</td>
-                    <td style="width: 12%" class="border-0">
+                    <td>
+                        {% if utilisateur.actif == 1 %}
+                            Actif
+                        {% else %}
+                            Inactif
+                        {% endif %}
+                    </td>
+                    <td style="width: 17%">
                         <div class="d-flex justify-content-between">
-                            <form class="mr-2" method="get" action="{{ url_for('modifier_utilisateur') }}">
-                            <input type="hidden" name="id_utilisateur" value="{{ utilisateur.id_utilisateur }}">
-                            <button type="submit" class="btn btn-success">Modifier</button>
-                        </form>
-                        <form method="post" action="{{ url_for('supprimer_utilisateur') }}">
-                            <input type="hidden" name="id_utilisateur" value="{{ utilisateur.id_utilisateur }}">
-                            <button type="submit" class="btn btn-danger">Supprimer</button>
-                        </form>
+                            <a class="mr-2" href="{{ url_for('modifier_utilisateur', id_utilisateur=utilisateur.id_utilisateur) }}">
+                                <button type="submit" class="btn btn-success">Modifier</button>
+                            </a>
+                            <a href="{{ url_for('desactiver_utilisateur', id_utilisateur=utilisateur.id_utilisateur) }}">
+                                <button {% if utilisateur.actif == 0|int %}disabled{% endif %} type="submit"
+                                    class="btn btn-danger">Désactiver
+                                </button>
+                            </a>
                         </div>
                     </td>
                 </tr>
             {% endfor %}
+        {% endif %}
         </tbody>
     </table>
-    <form method="get" action="{{ url_for('ajouter_utilisateur') }}">
-        <button type="submit" class="btn btn-primary mt-4">Ajouter un utilisateur</button>
-    </form>
+    <a href="{{ url_for('ajouter_utilisateur') }}">
+        <button type="submit" class="btn btn-primary btn-lg mb-4 mt-4">Ajouter un utilisateur</button>
+    </a>
     </div>
 {% endblock %}

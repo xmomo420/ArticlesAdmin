@@ -7,7 +7,8 @@ CREATE TABLE utilisateur (
     courriel TEXT,
     hach TEXT,
     salt TEXT,
-    photo_profil BLOB
+    photo_profil BLOB,
+    actif INTEGER CHECK (actif IN (0, 1))
 );
 
 -- Table pour représenter les articles de l'application
@@ -17,7 +18,7 @@ CREATE TABLE article (
     auteur_id INTEGER,
     date_publication DATE,
     contenu TEXT,
-    est_html INTEGER,
+    est_html INTEGER CHECK (est_html IN (0, 1)),
     FOREIGN KEY (auteur_id) REFERENCES utilisateur(id)
 );
 

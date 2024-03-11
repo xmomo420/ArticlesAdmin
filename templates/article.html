@@ -1,0 +1,32 @@
+{% extends "template.html" %}
+{% block content %}
+    <div class="container mt-5 mb-4 pt-4 text-center bg-primary-subtle card">
+    <!-- Titre de l'article centré -->
+    <h1 class="display-4 fw-bold">{{ article.titre }}</h1>
+    <div class="p-4">
+        <!-- Ligne distincte sous le titre avec le nom de l'auteur et la date de publication -->
+        <hr class="my-4 border border-black">
+        <!-- Informations sur l'auteur et la date, justifiées à gauche -->
+        <div class="lead text-start d-block">
+            <p>Par <span class="fw-bold">{{ nom_complet}}</span></p>
+            <img class="card" src="data:image/png;base64,{{ photo }}" alt="Photo de profil" width="10%">
+        </div>
+        <!-- Ligne distincte sous le titre avec le nom de l'auteur et la date de publication -->
+        <hr class="my-4 border border-black">
+        <!-- Contenu de l'article, justifié à gauche -->
+        <div class="lead text-start">
+            {% if article.est_html == 1|int %}
+        	    {{ article.contenu | safe }}
+            {% else %}
+        	    <p>{{ article.contenu }}</p>
+            {% endif %}
+        <!-- Ligne distincte sous le titre avec le nom de l'auteur et la date de publication -->
+        <hr class="my-4 border border-black">
+        <!--  -->
+        <p class="lead text-start">Publié le <span class="fw-bold">{{ article.date }}</span></p>
+        <!-- Ligne distincte sous le titre avec le nom de l'auteur et la date de publication -->
+        <hr class="my-4 border border-black">
+        </div>
+    </div>
+</div>
+{% endblock %}

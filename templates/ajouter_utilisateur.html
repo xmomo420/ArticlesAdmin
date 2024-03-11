@@ -1,14 +1,13 @@
 {% extends "template.html" %}
 {% block content %}
     <!-- Conteneur pour le formulaire -->
-    <div id="formulaire" class="card p-4 mt-4 text-center">
+    <div style="width: 60%" class="container mb-4 bg-primary-subtle card p-4 mt-4">
         <!-- S'il y a un message dans les paramètres -->
         {% if message %}
             {% if succes %} <!-- Si l'utilisateur a été ajouté avec succès -->
-                <div class="alert alert-success" role="alert">
+                <div class="text-center alert alert-success" role="alert">
                     <h3 class="alert-heading">{{ message }}</h3>
                 </div>
-                <script>masquerFormulaire()</script> <!-- On masque le formulaire -->
             {% else %} <!-- Erreur lors de la validation -->
                 <div class="alert alert-danger" role="alert">
                     <h3 class="alert-heading">{{ message }}</h3>
@@ -16,48 +15,162 @@
             {% endif %}
         {% endif %}
         <!-- Formulaire -->
-        <form class="d-flex flex-column align-items-center" method="post" action="{{ url_for('utilisateur') }}" enctype="multipart/form-data">
-            <h2 class="mb-3">Nouvel utilisateur</h2>
-            <div class="mb-3">
+        <form id="formulaire" class="needs-validation row g-4"
+              method="post" action="{{ url_for('utilisateur_ajouter_traitement') }}" enctype="multipart/form-data" novalidate>
+            <h2 class="text-center">Nouvel utilisateur</h2>
+            <!-- Prénom -->
+            <div class="col-md-4">
                 <label class="form-label font-weight-bold fs-5" for="prenom">Prénom</label>
-                <input class="form-control border border-dark border-2" id="prenom" type="text" name="prenom">
+                <input required class="form-control border border-dark border-2" id="prenom" type="text" name="prenom"
+                    placeholder="Entrez le prénom" value="{{ prenom }}">
+                <div class="invalid-feedback">Un prénom ne peut pas être vide</div>
             </div>
-            <div class="mb-3">
+            <!-- Nom -->
+            <div class="col-md-4">
                 <label class="form-label font-weight-bold fs-5" for="nom">Nom</label>
-                <input class="form-control border border-dark border-2" id="nom" type="text" name="nom">
+                <input required class="form-control border border-dark border-2" id="nom" type="text" name="nom"
+                    placeholder="Entrez le nom" value="{{ nom }}">
+                <div class="invalid-feedback">Un nom ne peut pas être vide</div>
             </div>
-            <div>
+            <!-- Identifiant -->
+            <div class="col-md-4">
                 <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
-                <input class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant">
+                <input required class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant"
+                    placeholder="Choisissez un identifiant" value="{{ identifiant }}">
+                <div id="feedbackIdentifiant" class="invalid-feedback">Un identifiant ne peut pas être vide</div>
             </div>
-            <div class="mb-3">
+            <!-- Courriel -->
+            <div class="col-md-6">
                 <label class="form-label font-weight-bold fs-5" for="courriel">Courriel</label>
-                <input class="form-control border border-dark border-2" id="courriel" type="email" name="courriel">
+                <input required class="form-control border border-dark border-2" id="courriel" type="email" name="courriel"
+                    placeholder="Entrez l'adresse courriel" value="{{ courriel }}">
+                <div class="invalid-feedback">Une adresse courriel valide est obligatoire</div>
             </div>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmer courriel</label>
-                <input class="form-control border border-dark border-2" id="confirmation_courriel" type="email" name="confirmation_courriel">
+            <!-- Confirmation courriel -->
+            <div class="col-md-6">
+                <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmation courriel</label>
+                <input required class="form-control border border-dark border-2" id="confirmation_courriel" type="email"
+                       placeholder="Confirmez l'adresse courriel" name="confirmation_courriel">
+                <div id="feedbackCourriel" class="invalid-feedback">Vous devez confirmer l'adresse courriel</div>
             </div>
-            <div class="mb-3">
+            <!-- Mot de passe -->
+            <div class="col-md-6">
                 <label class="form-label font-weight-bold fs-5" for="mot_de_passe">Mot de passe</label>
-                <input class="form-control border border-dark border-2" id="mot_de_passe" type="password" name="mot_de_passe">
+                <input required class="form-control border border-dark border-2" id="mot_de_passe" type="password"
+                       placeholder="Choisissez un mot de passe" aria-describedby="criteres_mdp" name="mot_de_passe"
+                       pattern="^(?=.*[!@#\$%\^&\*\-,])(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$">
+                <div class="invalid-feedback">Ce mot de passe ne respecte pas les critères</div>
+                <div id="criteres_mdp" class="form-text mt-2">
+                    <h6 style="font-size: 0.95rem;">Critères du mot de passe</h6>
+                    <ul class="text-start">
+                        <li class="list-bullet">Au moins 8 caractères</li>
+                        <li class="list-bullet">Au moins 1 lettre majuscule</li>
+                        <li class="list-bullet">Au moins 1 lettre minuscule</li>
+                        <li class="list-bullet">Au moins 1 caractère spécial (!@#$%^&*-,)</li>
+                    </ul>
+                </div>
             </div>
-            <div class="mb-3">
+            <!-- Confirmation mot de passe -->
+            <div class="col-md-6">
                 <label class="form-label font-weight-bold fs-5" for="confirmation_mot_de_passe">Confirmer mot de passe</label>
-                <input class="form-control border border-dark border-2" id="confirmation_mot_de_passe" type="password" name="confirmation_mot_de_passe">
+                <input required class="form-control border border-dark border-2" id="confirmation_mot_de_passe"
+                       placeholder="Confirmez le mot de passe" type="password" name="confirmation_mot_de_passe"
+                       pattern="^(?=.*[!@#\$%\^&\*\-,])(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$">
+                <div id="feedBackMdp" class="invalid-feedback">Vous devez confirmer le mot de passe</div>
             </div>
-            <div class="mb-3">
+            <!-- Photo de profil -->
+            <div class="col-md-6">
                 <label class="form-label font-weight-bold fs-5" for="photo">Photo de profil</label>
-                <input class="form-control border border-dark border-2" id="photo" type="file" accept="image/png" name="photo">
+                <input required class="form-control border border-dark border-2" id="photo" type="file"
+                       accept="image/png" name="photo" aria-describedby="criteres_pic">
+                <div id="criteres_pic" class="form-text mt-2">Insérez une image format PNG</div>
+                <div class="invalid-feedback">Photo obligatoire</div>
             </div>
-            <div class="mb-3">
-                <button class="btn btn-primary" type="submit">Soumettre</button>
+            <!-- Bouton de soumission -->
+            <div class="mb-3 mt-4 d-flex gap-4 justify-content-center">
+                <button class="btn btn-lg btn-primary" type="submit">Soumettre</button>
+                <a href="{{ url_for('utilisateur') }}">
+                    <button type="button" class="btn btn-lg btn-warning">Annuler</button>
+                </a>
             </div>
-    </form>
-    {% if succes %} <!-- Afficher un bouton pour afficher le formulaire à nouveau -->
-        <div class="mb-3 text-center">
-        <button onclick="afficherFormulaire()" class="btn btn-primary">Ajouter un autre utilisateur</button>
+        </form>
     </div>
-    {% endif %}
-    </div>
+
+<!-- Script pour le formulaires -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Pour le champs identifiant
+    const listeUsernames = {{ list_username | safe }};
+    let messageFeedbackId = document.getElementById("feedbackIdentifiant");
+    const identifiant = document.getElementById('identifiant');
+    identifiant.addEventListener('input', function() {
+      // Si le champs n'est pas vide
+      if (identifiant.value.trim() !== '') {
+        // Si la liste des identifiants contient l'identifiant entré
+        if (listeUsernames.includes(identifiant.value.trim())) {
+            identifiant.setCustomValidity("Champ invalide");
+            messageFeedbackId.innerText = "L'identifiant \"" + identifiant.value.trim() + "\" est déja pris par un autre utilisateur";
+        } else {
+            identifiant.setCustomValidity("");
+        }
+      } else
+          messageFeedbackId.innerText = "Un identifiant ne peut pas être vide";
+    });
+
+    // Pour les champs mot de passes
+    const motDePasse = document.getElementById('mot_de_passe');
+    const confirmationMotDePasse = document.getElementById('confirmation_mot_de_passe');
+    const feedbackMdp = document.getElementById('feedBackMdp');
+    function verifierMotsDePasse() {
+        // Si les mots de passe ne correspondent pas
+        if (confirmationMotDePasse.value.trim() !== motDePasse.value.trim()) {
+            confirmationMotDePasse.setCustomValidity("Les mots de passe ne correspondent pas");
+            if (confirmationMotDePasse.value.trim() !== '') // Champ rempli
+                feedbackMdp.innerText = "Les mots de passe ne correspondent pas";
+            else // Champ vide
+                feedbackMdp.innerText = "Vous devez confirmer le mot de passe";
+        } else { // Mots de passe correspondent
+            confirmationMotDePasse.setCustomValidity("");
+        }
+    }
+
+
+    // Appliquer la fonction sur les 2 inputs
+    motDePasse.addEventListener('input', verifierMotsDePasse);
+    confirmationMotDePasse.addEventListener('input', verifierMotsDePasse);
+
+
+    // Pour l'adresse courriel
+    const courriel = document.getElementById('courriel');
+    const confirmationCourriel = document.getElementById('confirmation_courriel');
+    const feedbackCourriel = document.getElementById('feedbackCourriel');
+    function verifierCorrespondanceCourriels() {
+        // Si les adresses courriels ne sont pas les mêmes
+        if (confirmationCourriel.value.trim() !== courriel.value.trim()) {
+            confirmationCourriel.setCustomValidity("Les adresses courriels ne correspondent pas");
+            if (confirmationCourriel.value.trim() !== '') // Si le champ n'est pas vide
+                feedbackCourriel.innerText = "Les adresses courriels ne correspondent pas";
+            else
+                feedbackCourriel.innerText = "Vous devez confirmer l'adresse courriel";
+        } else { // Les adresses courriels correspondent
+            confirmationCourriel.setCustomValidity("");
+        }
+    }
+
+    // Appliquer la fonction pour les événements 'input'
+    courriel.addEventListener('input', verifierCorrespondanceCourriels);
+    confirmationCourriel.addEventListener('input', verifierCorrespondanceCourriels);
+
+    // Gestion du formulaire
+    const formulaire = document.getElementById('formulaire');
+    formulaire.addEventListener('submit', function(event) {
+        if (!formulaire.checkValidity()) {
+            event.preventDefault();
+            formulaire.classList.add('was-validated');
+        }
+    });
+});
+</script>
+
 {% endblock %}

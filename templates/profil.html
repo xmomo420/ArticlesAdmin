@@ -1,14 +1,30 @@
 {% extends "template.html" %}
 {% block content %}
-    <h2>Profil personnel</h2>
-    <h5>Prénom</h5>
-    <p>{{ prenom }}</p>
-    <h5>Nom</h5>
-    <p>{{ nom }}</p>
-    <h5>Identifiant</h5>
-    <p>{{ identifiant }}</p>
-    <h5>Courriel</h5>
-    <p>{{ courriel }}</p>
-    <h5>Photo</h5>
-    <img src="data:image/png;base64,{{ photo }}" alt="Photo de profil">
+    <div style="width: 40%" class="ps-5 px-5 py-2 bg-primary-subtle card container mt-4 mb-4">
+        <h2 class="mb-4 text-center">Profil</h2>
+        <form class="row align-items-start">
+            <div class="col-sm-6 mb-3">
+                <img class="img-fluid card text-center"
+                     src="data:image/png;base64,{{ photo }}" alt="Photo de profil">
+            </div>
+            <div class="col-lg-6">
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold fs-5" for="prenom">Prénom</label>
+                    <input class="form-control border border-dark border-2" id="prenom" type="text" value="{{ prenom }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold fs-5" for="prenom">Nom</label>
+                    <input class="form-control border border-dark border-2" id="prenom" type="text" value="{{ nom }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold fs-5" for="prenom">Identifiant</label>
+                    <input class="form-control border border-dark border-2" id="prenom" type="text" value="{{ identifiant }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold fs-5" for="prenom">Courriel</label>
+                    <input class="form-control border border-dark border-2" id="prenom" type="text" value="{{ courriel }}" readonly>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock %}

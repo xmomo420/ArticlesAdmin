@@ -1,0 +1,56 @@
+{% extends "template.html" %}
+{% block content %}
+<!-- Conteneur pour le formulaire -->
+    <div style="width: 55%" class="container mb-4 bg-primary-subtle card p-4 mt-4 text-center">
+        <!-- S'il les champs du formulaire ne sont pas tous valides -->
+        {% if message %}
+            <div class="alert alert-danger mt-3" role="alert">
+                <h3 class="alert-heading">{{ message }}</h3>
+            </div>
+        {% endif %}
+        <!-- Formulaire -->
+        <form id="formulaire" class="d-flex flex-column align-items-center" method="post"
+              action="{{ url_for('admin_modifier_traitement', identifiant=identifiant) }}">
+            <h2 class="mb-3">Modifications</h2>
+            <input type="hidden" name="identifiant" value="{{ identifiant }}">
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="titre">Nouveau titre</label>
+                <input class="form-control border border-dark border-2" id="titre" type="text" name="titre"
+                       aria-describedby="aide_titre" placeholder="Nouveau titre de l'article" value="{{ titre }}">
+                <div class="form-text" id="aide_titre">{{ critere_titre }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold fs-5" for="contenu">Nouveau contenu</label>
+                <textarea class="form-control border border-dark border-2" name="contenu" id="contenu"
+                          aria-describedby="aide_contenu" placeholder="Nouveau contenu de l'article" cols="60" rows="10"
+                            >{{ contenu }}</textarea>
+                <div class="form-text" id="aide_contenu">{{ critere_contenu }}</div>
+            </div>
+            <label class="form-label font-weight-bold fs-5" for="est_html">Type de contenu</label>
+            <div aria-describedby="aide_choix" class="d-flex justify-content-center gap-3">
+                <div>
+                    <input class="btn-check" id="html" type="radio" name="est_html" value="{{ 1|int }}" autocomplete="off"
+                        {% if est_html == 1 %}
+                        	checked
+                        {% endif %}>
+                    <label style="border-width: 3px" class="btn btn-outline-info form-label" for="html">HTML</label>
+                </div>
+                <div>
+                    <input class="btn-check" id="texte" type="radio" name="est_html" value="{{ 0|int }}" autocomplete="off"
+                        {% if est_html == 0 %}
+                        	checked
+                        {% endif %}>
+                    <label style="border-width: 3px" class="btn btn-outline-warning" for="texte">Texte</label>
+                </div>
+            </div>
+            <div class="form-text" id="aide_choix">{{ critere_est_html }}</div>
+            <!-- Boutons -->
+            <div class="mb-3 pt-5 d-flex gap-4 justify-content-center">
+                <button class="btn btn-lg btn-primary" type="submit">Soumettre</button>
+                <a href="{{ url_for('admin') }}">
+                    <button type="button" class="btn btn-lg btn-warning">Annuler</button>
+                </a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,51 +1,127 @@
 {% extends "template.html" %}
 {% block content %}
 <!-- Conteneur pour le formulaire -->
-    <div id="formulaire" class="card p-4 mt-4 text-center">
+    <div style="width: 50%" class="container bg-primary-subtle card p-4 mt-4 mb-4">
         <!-- Si la validation a échoué -->
         {% if message %}
-            <div class="alert alert-danger" role="alert">
+            <div class="text-center alert alert-danger" role="alert">
                 <h3 class="alert-heading">{{ message }}</h3>
             </div>
         {% endif %}
         <!-- Formulaire -->
-        <form class="d-flex flex-column align-items-center" method="post" action="{{ url_for('modifier_utilisateur') }}" enctype="multipart/form-data">
-            <h2 class="mb-3">Modifications</h2>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="prenom">Prénom</label>
-                <input class="form-control border border-dark border-2" id="prenom" type="text" name="prenom" value="{{ prenom }}">
+        <form id="formulaire" class="needs-validation row g-4" method="post"
+              action="{{ url_for('utilisateur_modifier_traitement', id_utilisateur=id_utilisateur) }}"
+              enctype="multipart/form-data" novalidate>
+            <h2 class="text-center">Modifications</h2>
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold fs-5" for="prenom">Nouveau prénom</label>
+                <input required class="form-control border border-dark border-2" id="prenom" type="text" name="prenom"
+                       placeholder="Nouveau prénom" value="{{ prenom }}">
+                <div class="invalid-feedback">Un prénom ne peut pas être vide</div>
             </div>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="nom">Nom</label>
-                <input class="form-control border border-dark border-2" id="nom" type="text" name="nom" value="{{ nom }}">
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold fs-5" for="nom">Nouveau nom</label>
+                <input required class="form-control border border-dark border-2" id="nom" type="text" name="nom"
+                       placeholder="Nouveau nom" value="{{ nom }}">
+                <div class="invalid-feedback">Un nom ne peut pas être vide</div>
             </div>
-            <div>
-                <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
-                <input class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant" value="{{ identifiant }}">
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold fs-5" for="identifiant">Nouvel identifiant</label>
+                <input required class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant"
+                       placeholder="Nouvel identifiant" value="{{ identifiant }}">
+                <div id="feedbackId" class="invalid-feedback">Un identifiant ne peut pas être vide</div>
             </div>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="courriel">Courriel</label>
-                <input class="form-control border border-dark border-2" id="courriel" type="email" name="courriel" value="{{ courriel }}">
+            <div class="col-md-6">
+                <label class="form-label font-weight-bold fs-5" for="courriel">Nouveau courriel</label>
+                <input required class="form-control border border-dark border-2" id="courriel" type="email" name="courriel"
+                       placeholder="Nouvelle adresse courriel" value="{{ courriel }}">
+                <div class="invalid-feedback">Une adresse courriel valide est obligatoire</div>
             </div>
-            <div class="mb-3">
+            <div class="col-md-6">
                 <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmer courriel</label>
-                <input class="form-control border border-dark border-2" id="confirmation_courriel" type="email" name="confirmation_courriel">
+                <input required class="form-control border border-dark border-2" id="confirmation_courriel" type="email"
+                       placeholder="Confirmez la nouvelle adresse courriel" value="{{ courriel }}" name="confirmation_courriel">
+                <div id="feedbackCourriel" class="invalid-feedback">Vous devez confirmer l'adresse courriel</div>
             </div>
-            <div class="mb-3">
-                <img src="data:image/png;base64,{{ photo }}" alt="Photo de profil">
+            <div class="col-md-3">
+                <div id="photo_actuelle" class="form-text">Photo de profil actuelle</div>
+                <img class="card" aria-describedby="photo_actuelle" src="data:image/png;base64,{{ photo }}" alt="Photo de profil" width="100%">
             </div>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="photo">Photo de profil</label>
-                <input class="form-control border border-dark border-2" id="photo" type="file" accept="image/png" name="photo">
+            <div class="col-md-6">
+                <label class="form-label font-weight-bold fs-5" for="photo">Nouvelle photo de profil</label>
+                <input aria-describedby="aide_photo" class="form-control border border-dark border-2" id="photo" type="file"
+                        accept="image/png" name="photo">
+                <div id="aide_photo" class="form-text">Insérer une image format PNG</div>
             </div>
-            <div class="mb-3">
-                <button class="btn btn-primary" type="submit">Soumettre</button>
+            <div class="col-md-3">
+                <label class="form-label font-weight-bold fs-5" for="statut">Statut</label>
+                <select required class="form-select border border-dark border-2" id="statut" name="statut">
+                    <option value="{{ 1|int }}" {% if actif == 1|int %}selected{% endif %}>Actif</option>
+                    <option value="{{ 0|int }}" {% if actif == 0|int %}selected{% endif %}>Inactif</option>
+                </select>
             </div>
-    </form>
-    {% if succes %} <!-- Afficher un bouton pour afficher le formulaire à nouveau -->
-        <div class="mb-3 text-center">
-        <button onclick="afficherFormulaire()" class="btn btn-primary">Ajouter un autre utilisateur</button>
+            <div class="mb-3 mt-4 d-flex gap-4 justify-content-center">
+                <button class="btn btn-lg btn-primary" type="submit">Soumettre</button>
+                <a href="{{ url_for('utilisateur') }}">
+                    <button type="button" class="btn btn-lg btn-warning">Annuler</button>
+                </a>
+            </div>
+        </form>
     </div>
-    {% endif %}
-    </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Pour le champs identifiant
+    const listeUsernames = {{ liste_usernames | safe }};
+    let messageFeedbackId = document.getElementById("feedbackId");
+    const identifiant = document.getElementById('identifiant');
+    identifiant.addEventListener('input', function() {
+      // Si le champs n'est pas vide
+      if (identifiant.value.trim() !== '') {
+        // Si la liste des identifiants contient l'identifiant entré
+        if (listeUsernames.includes(identifiant.value.trim()) && identifiant.value !== "{{ identifiant }}") {
+            identifiant.setCustomValidity("Champ invalide");
+            messageFeedbackId.innerText = "L'identifiant \"" + identifiant.value.trim() + "\" est déja pris par un autre utilisateur";
+        } else {
+            identifiant.setCustomValidity("");
+        }
+      } else
+          messageFeedbackId.innerText = "Un identifiant ne peut pas être vide";
+    });
+
+    // Pour l'adresse courriel
+    const courriel = document.getElementById('courriel');
+    const confirmationCourriel = document.getElementById('confirmation_courriel');
+    const feedbackCourriel = document.getElementById('feedbackCourriel');
+    function verifierCorrespondanceCourriels() {
+        // Si les adresses courriels ne sont pas les mêmes
+        if (confirmationCourriel.value.trim() !== courriel.value.trim()) {
+            confirmationCourriel.setCustomValidity("Les adresses courriels ne correspondent pas");
+            if (confirmationCourriel.value.trim() !== '') // Si le champ n'est pas vide
+                feedbackCourriel.innerText = "Les adresses courriels ne correspondent pas";
+            else
+                feedbackCourriel.innerText = "Vous devez confirmer l'adresse courriel";
+        } else { // Les adresses courriels correspondent
+            confirmationCourriel.setCustomValidity("");
+        }
+    }
+
+    // Appliquer la fonction pour les événements 'input'
+    courriel.addEventListener('input', verifierCorrespondanceCourriels);
+    confirmationCourriel.addEventListener('input', verifierCorrespondanceCourriels);
+
+    // Appliquer la fonction pour les événements 'input'
+    courriel.addEventListener('input', verifierCorrespondanceCourriels);
+    confirmationCourriel.addEventListener('input', verifierCorrespondanceCourriels);
+
+    // Gestion du formulaire
+    const formulaire = document.getElementById('formulaire');
+    formulaire.addEventListener('submit', function(event) {
+        if (!formulaire.checkValidity()) {
+            event.preventDefault();
+            formulaire.classList.add('was-validated');
+        }
+    });
+});
+</script>
 {% endblock %}

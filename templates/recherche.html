@@ -1,0 +1,38 @@
+{% extends "template.html" %}
+{% block content %}
+    <!-- Si aucun article a été trouvé -->
+    <div id="liste" class="table-responsive text-center">
+        {% if message %}
+            <div class="container alert alert-danger mt-4" role="alert">
+                <h3 class="alert-heading">{{ message }}</h3>
+            </div>
+        {% endif %}
+        <!-- Afficher une grille avec tous les articles correspondant à la recherche -->
+        <table style="width: 50%" class="table align-middle table-secondary caption-top table-bordered mt-5 mx-auto">
+        <caption class="text-center h4">
+            Articles correspondant à <span class="text-warning-emphasis fst-italic">"{{ recherche }}"</span>
+        </caption>
+        <thead class="table-primary">
+            <tr>
+                <th scope="col">Titre</th>
+                <th scope="col">Date de publication</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if liste %}
+            {% for article in liste %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('article', identifiant=article.identifiant) }}">{{ article.titre }}</a>
+                    </td>
+                    <td>{{ article.date }}</td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+        <a href="{{ url_for('index') }}">
+            <button type="button" class="btn btn-primary btn-lg mb-4 mt-4">Effectuer une autre recherche</button>
+        </a>
+</div>>
+{% endblock %}

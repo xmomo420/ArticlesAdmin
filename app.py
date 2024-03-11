@@ -1,11 +1,12 @@
-import base64
-
 from flask import Flask, render_template, request, redirect, url_for, g, session, abort
+
 from database import Database
-from datetime import date
+from datetime import datetime
+import base64
 import hashlib
 import uuid
 import secrets
+import re
 from functools import wraps
 
 app = Flask(__name__)
@@ -31,47 +32,6 @@ def deconnection():
         database.deconnection()
 
 
-# Routes
-
-@app.route('/', methods=['GET'])
-def index():
-    message_logout = request.args.get('message_logout', None)
-    articles = get_db().get_5_premiers_articles()  # Récupérer les articles de la BD et les mettre dans une variable
-    articles_tries = sorted(articles, key=lambda un_article: un_article.date, reverse=True)  # Trier selon la date
-    return render_template('index.html', nom='Accueil', liste=articles_tries[:5], message_logout=message_logout), 200
-
-
-@app.route('/article/<identifiant>', methods=['GET'])
-def article(identifiant):
-    identifiant_db = get_db().get_article(identifiant)
-    if identifiant_db is not None:  # Si l'identifiant existe dans la BD
-        photo = identifiant_db.get_photo(identifiant_db.auteur_id)
-        render_template('article.html', nom='Article', identifiant=identifiant_db), 200
-    else:
-        return 404
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        message = request.args.get('message', None)
-        return render_template('login.html', nom_page='Authentification', message=message), 200
-    else:  # méthode POST : Formulaire envoyé
-        mot_de_passe = request.form['mot_de_passe']
-        identifiant = request.form['identifiant']
-        id_utilisateur = get_db().authentifier(identifiant, mot_de_passe)
-        if id_utilisateur is not None:  # Authentification réussi
-            # Code pour ajouter l'utilisateur à la session
-            id_session = uuid.uuid4().hex
-            get_db().creer_session(id_session, id_utilisateur)
-            session['id_session'] = id_session
-            session['id_utilisateur'] = id_utilisateur
-            return redirect(url_for('admin'), 302)
-        else:
-            message = "Combinaison courriel et mot de passe invalide"
-            return render_template('login.html', nom_page='Authentification', message=message), 200
-
-
 # Gestion de la session en cours
 def est_authentifie():
     if 'id_session' in session:
@@ -90,10 +50,180 @@ def authentification_requise(f):
     return decorated
 
 
+def get_nom_auteur(auteur):
+    return get_db().get_nom_auteur(auteur)
+
+
+@app.route('/', methods=['GET'])
+def index():
+    message_logout = request.args.get('message_logout', None)
+    message_desactivation = request.args.get('message_desactivation', None)
+    articles = get_db().get_all_articles()  # Récupérer les articles de la BD et les mettre dans une variable
+    if articles is not None:
+        # Trier selon la date
+        articles = sorted(articles, key=lambda un_article: un_article.date, reverse=True)
+        articles = articles[:5]
+    # Ajoutez le nom de l'auteur à chaque article
+    for article in articles:
+        article.nom_auteur = get_nom_auteur(article.auteur)
+    return render_template('index.html', nom='Accueil', liste=articles,
+                           message_logout=message_logout, message_desactivation=message_desactivation), 200
+
+
+@app.route('/article/<identifiant>', methods=['GET'])
+def article(identifiant):
+    article = get_db().get_article(identifiant)
+    if article is not None:  # Si l'identifiant existe dans la BD
+        photo = get_db().get_photo_auteur(article.auteur)
+        photo_b64 = base64.b64encode(photo).decode('utf-8')
+        nom_complet = get_db().get_nom_auteur(article.auteur)
+        return render_template('article.html', nom_page='Article', identifiant=article,
+                               photo=photo_b64, nom_complet=nom_complet, article=article), 200
+    else:
+        abort(404)
+
+
+@app.route('/recherche', methods=['POST'])
+def recherche():
+    recherche = request.form['recherche']
+    articles = get_db().get_articles_like(recherche)
+    message = None
+    if articles is None:
+        message = "Aucun résultat ne correspond à votre recherche"
+    return (render_template('recherche.html', nom_page='Recherche', liste=articles, message=message,
+                            recherche=recherche), 200)
+
+
+@app.route('/login', methods=['GET'])
+def login():
+    if request.method == 'GET':
+        message = request.args.get('message', None)
+        return render_template('login.html', nom_page='Authentification', message=message), 200
+
+
+@app.route('/login/traitement', methods=['POST'])
+def traitement_login():
+    mot_de_passe = request.form['mot_de_passe']
+    identifiant = request.form['identifiant']
+    id_utilisateur = get_db().authentifier(identifiant, mot_de_passe)
+    if id_utilisateur is not None:  # Utilisateur existant
+        if get_db().get_utilisateur(id_utilisateur).actif == 0:  # Si l'utilisateur est marqué comme inactif
+            message = 'Cet utilisateur a été désactivé'
+            return redirect(url_for('login', message=message), 302)
+        else:  # Utilisateur actif
+            # Code pour ajouter l'utilisateur à la session
+            id_session = uuid.uuid4().hex
+            get_db().creer_session(id_session, id_utilisateur)
+            session['id_session'] = id_session
+            session['id_utilisateur'] = id_utilisateur
+            return redirect(url_for('admin'), 302)
+    else:
+        message = "Combinaison identifiant et mot de passe invalide"
+        return redirect(url_for('login', message=message), 302)
+
+
 @app.route('/admin', methods=['GET'])
 @authentification_requise
 def admin():
-    return render_template('admin.html', nom_page='Administration'), 200
+    liste_articles = get_db().get_all_articles()
+    message = request.args.get('message', None)
+    return render_template('admin.html', nom_page='Administration', message=message,
+                           liste=liste_articles), 200
+
+
+@app.route('/admin-nouveau', methods=['GET'])
+@authentification_requise
+def admin_nouveau():
+    # Variables représentant les critères de validation
+    critere_titre = "Un titre ne doit pas être vide."
+    critere_contenu = "Le contenu ne peut pas être vide."
+    critere_est_html = "Vous devez séléctionner une des deux options."
+    message = request.args.get('message', None)
+    titre = request.args.get('titre', '')
+    contenu = request.args.get('contenu', '')
+    est_html = int(request.args.get('est_html', -1))
+    if message is None:  # Erreur lors de la validation du formulaire
+        code = 400
+    else:  # Formulaire validé ou affichage du formulaire pour la première fois dans cette séquence
+        code = 200
+    return render_template('admin-nouveau.html', nom_page='Nouvel article', message=message,
+                           critere_contenu=critere_contenu, critere_titre=critere_titre,
+                           critere_est_html=critere_est_html, titre=titre, contenu=contenu,
+                           est_html=est_html), code
+
+
+def formulaire_valide(titre, contenu, est_html):
+    return titre.strip() != '' and contenu.strip() != '' and est_html != -1
+
+
+def generer_identifiant_unique():
+    id_trouve = False
+    identifiant_unique = uuid.uuid4().hex
+    while id_trouve is False:
+        identifiant_unique = uuid.uuid4().hex
+        id_trouve = get_db().get_article(identifiant_unique) is None
+    return identifiant_unique
+
+
+@app.route('/admin-nouveau/traitement', methods=['POST'])
+@authentification_requise
+def admin_nouveau_traitement():
+    titre = request.form['titre']
+    contenu = request.form['contenu']
+    est_html = int(request.form.get('est_html', -1))
+    if formulaire_valide(titre, contenu, est_html):  # Si le formulaire est valide
+        message = "L'article a été ajouté avec succès"
+        # Ajouter la'rticle dans la base de données
+        auteur = session['id_utilisateur']
+        date_publiation = datetime.now()
+        identifiant = generer_identifiant_unique()
+        get_db().ajouter_article(identifiant, titre, auteur, date_publiation, contenu, est_html)
+        return redirect(url_for('admin', message=message), 302)
+    else:  # Formulaire n'est pas valide
+        message = ("Le forumulaire n'a pas été rempli correctement. Faites attention aux critères pour chaque champs.")
+        print(est_html)
+        return redirect(url_for('admin_nouveau', message=message, titre=titre, contenu=contenu,
+                                est_html=est_html), 302)
+
+
+@app.route('/admin/modifier/id=<identifiant>', methods=['GET'])
+@authentification_requise
+def admin_modifier(identifiant):
+    message = request.args.get('message', None)
+    success = request.args.get('success', None)
+    if message is not None and success is False:
+        code = 400
+    else:
+        code = 200
+    article_modifie = get_db().get_article(identifiant)
+    titre = article_modifie.titre
+    contenu = article_modifie.contenu
+    est_html = int(article_modifie.est_html)
+    critere_titre = "Un titre ne doit pas être vide."
+    critere_contenu = "Le contenu ne peut pas être vide."
+    critere_est_html = "Vous devez séléctionner une des deux options."
+    return render_template('admin-modifier.html', nom_page='Modification article', message=message,
+                           critere_contenu=critere_contenu, critere_titre=critere_titre, identifiant=identifiant,
+                           critere_est_html=critere_est_html, success=success, titre=titre, contenu=contenu,
+                           est_html=est_html), code
+
+
+@app.route('/admin/modifier/id=<identifiant>/traitement', methods=['POST'])
+@authentification_requise
+def admin_modifier_traitement(identifiant):
+    titre = request.form.get('titre', None)
+    contenu = request.form.get('contenu', None)
+    est_html = int(request.form.get('est_html', -1))
+    if formulaire_valide(titre, contenu, est_html):
+        message = f"L'article \"{titre}\" a été modifier avec succès"
+        get_db().modifier_article(identifiant, titre, contenu, est_html)
+        return redirect(url_for('admin', message=message), 302)
+    else:
+        message = ("Le forumulaire n'a pas été rempli correctement.\n"
+                   "Faites attention aux critères pour chaque champs.")
+        success = False
+        return redirect(url_for('admin_modifier', identifiant=identifiant, titre=titre, contenu=contenu,
+                                est_html=est_html, message=message, success=success), 302)
 
 
 @app.route('/utilisateur', methods=['GET'])
@@ -105,58 +235,148 @@ def utilisateur():
                            message=message), 200
 
 
-@app.route('/utilisateur/ajouter', methods=['GET', 'POST'])
+@app.route('/utilisateur/ajouter', methods=['GET'])
 @authentification_requise
 def ajouter_utilisateur():
-    if request.method == 'GET':
-        message = request.args.get('message', None)
-        return render_template('ajouter_utilisateur.html', nom_page='Ajout nouvel utilisateur',
-                               message=message), 200
-    else:  # POST
-        prenom = request.form['prenom']
-        nom = request.form['nom']
-        identifiant = request.form['identifiant']
-        courriel = request.form['courriel']
-        validation_courriel = request.form['confirmation_courriel']
-        mot_de_passe = request.form['mot_de_passe']
-        photo = None
-        if 'photo' in request.files:
-            photo = request.files['photo']
-        # TODO : Valider le formulaire
-        # TODO : Si tout est valide
-        salt = uuid.uuid4().hex
-        hashed_password = hashlib.sha512(str(mot_de_passe + salt).encode("utf-8")).hexdigest()
-        get_db().ajouter_utilisateur(prenom, nom, identifiant, courriel, hashed_password, salt, photo)
-        message = f"L'utilisateur {prenom} {nom} a été ajouté avec succès"
-        return redirect(url_for('ajouter_utilisateur', message=message), 302)
-
-
-@app.route('/utilisateur/supprimer', methods=['POST'])
-@authentification_requise
-def supprimer_utilisateur():
-    id_utilisateur = request.form['id_utilisateur']
-    # TODO : Désactiver l'utilisateur de la BD
-    message = f"L'utilisateur a été désactivé avec succès"
-    return redirect(url_for('utilisateur', message=message), 302)
-
-
-@app.route('/utilisateur/modifier', methods=['GET', 'POST'])
-@authentification_requise
-def modifier_utilisateur():
-    if request.method == 'GET':
-        id_utilisateur = request.args.get('id_utilisateur')
-        message = request.args.get('message', None)
-        if id_utilisateur:
-            utilisateur_modifie = get_db().get_utilisateur(id_utilisateur)
-            photo_b64 = base64.b64encode(utilisateur_modifie.photo).decode('utf-8')  # Récupérer la photo
-            return render_template('modifier.html', nom_page="Modification utilisateur",
-                                   prenom=utilisateur_modifie.prenom, nom=utilisateur_modifie.nom,
-                                   courriel=utilisateur_modifie.courriel, photo=photo_b64,
-                                   identifiant=utilisateur_modifie.identifiant, message=message), 200
+    prenom = request.args.get('prenom', "")
+    nom = request.args.get('nom', "")
+    identifiant = request.args.get('identifiant', "")
+    courriel = request.args.get('courriel', "")
+    list_username = get_db().get_all_usernames()
+    message = request.args.get('message', None)
+    if message is not None:
+        code = 400
     else:
-        # TODO : Valider le formulaire
-        message = "L'utilisateur a été modifié"
+        code = 200
+    return render_template('ajouter_utilisateur.html', nom_page='Ajout nouvel utilisateur',
+                           message=message, list_username=list_username, prenom=prenom, nom=nom, identifiant=identifiant
+                           , courriel=courriel), code
+
+
+def valider_formulaire_ajout_utilisateur(prenom, nom, identifiant, courriel, confirmation_courriel, mot_de_passe,
+                                         confirmation_mot_de_passe, photo):
+    courriels_valides = courriel.strip() != '' and courriel.strip() == confirmation_courriel.strip()
+    liste_identifiants = get_db().get_all_usernames()
+    identifiant_valide = identifiant.strip() not in liste_identifiants and identifiant.strip() != ''
+    photo_valide = photo.filename != ''
+    mot_de_passe_valide = re.match(r'^(?=.*[!@#$%^&*\-,])(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$', mot_de_passe)
+    mots_de_passe_identiques_et_valides = mot_de_passe_valide and mot_de_passe == confirmation_mot_de_passe
+    nom_valide = prenom.strip() != '' and nom.strip() != ''
+    return identifiant_valide and courriels_valides and nom_valide and photo_valide and mots_de_passe_identiques_et_valides
+
+
+@app.route('/utilisateur/ajouter/traitement', methods=['POST'])
+@authentification_requise
+def utilisateur_ajouter_traitement():
+    prenom = request.form['prenom']
+    nom = request.form['nom']
+    identifiant = request.form['identifiant']
+    courriel = request.form['courriel']
+    confirmation_courriel = request.form['confirmation_courriel']
+    mot_de_passe = request.form['mot_de_passe']
+    confirmation_mot_de_passe = request.form['confirmation_mot_de_passe']
+    photo = request.files['photo']
+    if valider_formulaire_ajout_utilisateur(prenom, nom, identifiant, courriel, confirmation_courriel, mot_de_passe,
+                                            confirmation_mot_de_passe, photo):
+        liste_courriels = get_db().get_all_courriels()
+        if courriel not in liste_courriels:
+            # Formulaire valide
+            salt = uuid.uuid4().hex
+            hashed_password = hashlib.sha512(str(mot_de_passe + salt).encode("utf-8")).hexdigest()
+            get_db().ajouter_utilisateur(prenom.strip(), nom.strip(), identifiant.strip(), courriel.strip(),
+                                         hashed_password, salt, photo)
+            message = f"L'utilisateur {prenom} {nom} a été ajouté avec succès"
+            return redirect(url_for('utilisateur', message=message), 302)
+        else:
+            message = f"L'adresse courriel \"{courriel}\" a déjà été prise par un autre utilisateur"
+            return redirect(url_for('ajouter_utilisateur', message=message, prenom=prenom, nom=nom,
+                                    identifiant=identifiant), 302)
+    else:
+        message = 'Formulaire invalide, veuillez respecter tous les champs'
+        return redirect(url_for('ajouter_utilisateur', message=message, prenom=prenom, nom=nom,
+                                identifiant=identifiant, courriel=courriel), 302)
+
+
+@app.route('/utilisateur/desactiver/<id_utilisateur>')
+@authentification_requise
+def desactiver_utilisateur(id_utilisateur):
+    get_db().desactiver_utilisateur(id_utilisateur)
+    utilisateur = get_db().get_utilisateur(id_utilisateur)
+    prenom = utilisateur.prenom
+    nom = utilisateur.nom
+    message = f"L'utilisateur {prenom} {nom} a été désactivé avec succès"
+    if int(id_utilisateur) == int(session['id_utilisateur']):
+        id_session = session['id_session']
+        session.pop('id_session', None)
+        session.pop('id_utilisateur', None)
+        get_db().supprimer_session(id_session)
+        message = "Vous n'êtes pas autorisé à accéder à ce contenu"
+        return redirect(url_for('index', message_desactivation=message), 302)
+    else:
         return redirect(url_for('utilisateur', message=message), 302)
+
+
+@app.route('/utilisateur/modifier/id=<id_utilisateur>', methods=['GET'])
+@authentification_requise
+def modifier_utilisateur(id_utilisateur):
+    liste_usernames = get_db().get_all_usernames()
+    message = request.args.get('message', None)
+    utilisateur_modifie = get_db().get_utilisateur(id_utilisateur)
+    photo_b64 = base64.b64encode(utilisateur_modifie.photo).decode('utf-8')  # Récupérer la photo
+    return render_template('modifier.html', nom_page="Modification utilisateur",
+                           prenom=utilisateur_modifie.prenom, nom=utilisateur_modifie.nom,
+                           courriel=utilisateur_modifie.courriel, photo=photo_b64,
+                           identifiant=utilisateur_modifie.identifiant, message=message,
+                           liste_usernames=liste_usernames, actif=utilisateur_modifie.actif,
+                           id_utilisateur=id_utilisateur), 200
+
+
+def valider_formulaire_modification_utilisateur(prenom, nom, identifiant, courriel, confirmation_courriel, statut,
+                                                id_utilisateur):
+    liste_usernames = get_db().get_all_usernames()
+    utilisateur_modifie = get_db().get_utilisateur(id_utilisateur)
+    identifiant_valide = identifiant not in liste_usernames or identifiant == utilisateur_modifie.identifiant
+    courriel_identiques = courriel.strip() == confirmation_courriel.strip()
+    statut_valide = statut == 0 or statut == 1
+    if identifiant_valide and courriel_identiques and statut_valide:
+        champs = [prenom, nom, identifiant, courriel]
+        return all(champ.strip() != '' for champ in champs)
+    else:
+        return False
+
+
+def verifier_unicite_courriel(courriel, id_utilisateur):
+    liste_courriels = get_db().get_all_courriels()
+    courriel_courrant = get_db().get_utilisateur(id_utilisateur).courriel
+    return courriel not in liste_courriels or courriel == courriel_courrant
+
+
+@app.route('/utilisateur/modifier/id=<id_utilisateur>/traitement', methods=['POST'])
+@authentification_requise
+def utilisateur_modifier_traitement(id_utilisateur):
+    prenom = request.form['prenom']
+    nom = request.form['nom']
+    identifiant = request.form['identifiant']
+    courriel = request.form['courriel']
+    confirmation_courriel = request.form['confirmation_courriel']
+    statut = int(request.form['statut'])
+    photo = request.files['photo']
+    if photo.filename == '':
+        photo = None
+    if valider_formulaire_modification_utilisateur(prenom, nom, identifiant, courriel, confirmation_courriel, statut,
+                                                   id_utilisateur):
+        if verifier_unicite_courriel(courriel, id_utilisateur):  # Formulaire valide
+            get_db().modifier_utilisateur(prenom.strip(), nom.strip(), identifiant.strip(), courriel.strip(), photo,
+                                          statut, id_utilisateur)
+            message = f"L'utilisateur \"{identifiant}\" a été modifié avec succès"
+            endpoint = 'utilisateur'
+        else:
+            message = f"L'adresse courriel \"{courriel}\" a déja été prise par un autre utilisateur"
+            endpoint = 'modifier_utilisateur'
+    else:
+        message = "Le formulaire n'a pas été rempli correctement"
+        endpoint = 'modifier_utilisateur'
+    return redirect(url_for(endpoint=endpoint, id_utilisateur=id_utilisateur, message=message), 302)
 
 
 @app.route('/profil')
@@ -170,7 +390,6 @@ def profil():
     courriel = utilisateur_connecte.courriel
     photo = utilisateur_connecte.photo
     photo_b64 = base64.b64encode(photo).decode('utf-8')
-    # TODO : Extraire la photo de 'utilisateur_connecte' et la passer en paramètre à la réponse
     return render_template('profil.html', nom_page='Profil', prenom=prenom, nom=nom,
                            identifiant=identifiant, courriel=courriel, photo=photo_b64)
 

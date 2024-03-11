@@ -29,7 +29,7 @@
                 <label class="form-label font-weight-bold fs-5" for="identifiant">Nouvel identifiant</label>
                 <input required class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant"
                        placeholder="Nouvel identifiant" value="{{ identifiant }}">
-                <div id="feedbackId" class="invalid-feedback">Un identifiant ne peut pas être vide</div>
+                <div id="feedback_identifiant" class="invalid-feedback">Un identifiant ne peut pas être vide</div>
             </div>
             <div class="col-md-6">
                 <label class="form-label font-weight-bold fs-5" for="courriel">Nouveau courriel</label>
@@ -41,7 +41,7 @@
                 <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmer courriel</label>
                 <input required class="form-control border border-dark border-2" id="confirmation_courriel" type="email"
                        placeholder="Confirmez la nouvelle adresse courriel" value="{{ courriel }}" name="confirmation_courriel">
-                <div id="feedbackCourriel" class="invalid-feedback">Vous devez confirmer l'adresse courriel</div>
+                <div id="feedback_courriel" class="invalid-feedback">Vous devez confirmer l'adresse courriel</div>
             </div>
             <div class="col-md-3">
                 <div id="photo_actuelle" class="form-text">Photo de profil actuelle</div>
@@ -70,13 +70,14 @@
     </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
-    // Pour le champs identifiant
+    // Pour le champ identifiant
     const listeUsernames = {{ liste_usernames | safe }};
-    let messageFeedbackId = document.getElementById("feedbackId");
+    let messageFeedbackId = document.getElementById("feedback_identifiantd");
     const identifiant = document.getElementById('identifiant');
+    const msgIdentifiantVide = "Un identifiant ne peut pas être vide";
+    // Ajouter des constantes pour le message d'erreur
     identifiant.addEventListener('input', function() {
-      // Si le champs n'est pas vide
+      // Si le champ n'est pas vide
       if (identifiant.value.trim() !== '') {
         // Si la liste des identifiants contient l'identifiant entré
         if (listeUsernames.includes(identifiant.value.trim()) && identifiant.value !== "{{ identifiant }}") {
@@ -86,21 +87,24 @@ document.addEventListener('DOMContentLoaded', function() {
             identifiant.setCustomValidity("");
         }
       } else
-          messageFeedbackId.innerText = "Un identifiant ne peut pas être vide";
+          messageFeedbackId.innerText = msgIdentifiantVide;
     });
 
     // Pour l'adresse courriel
     const courriel = document.getElementById('courriel');
     const confirmationCourriel = document.getElementById('confirmation_courriel');
-    const feedbackCourriel = document.getElementById('feedbackCourriel');
+    const feedbackCourriel = document.getElementById('feedback_courriel');
+    const msgCourrielVide = "Vous devez confirmer votre courriel";
+    const msgCourrielsCorrespondentPas = "Les adresses courriels ne correspondent pas";
+    // Ajouter des constantes pour le message d'erreur
     function verifierCorrespondanceCourriels() {
         // Si les adresses courriels ne sont pas les mêmes
         if (confirmationCourriel.value.trim() !== courriel.value.trim()) {
-            confirmationCourriel.setCustomValidity("Les adresses courriels ne correspondent pas");
+            confirmationCourriel.setCustomValidity(msgCourrielsCorrespondentPas);
             if (confirmationCourriel.value.trim() !== '') // Si le champ n'est pas vide
-                feedbackCourriel.innerText = "Les adresses courriels ne correspondent pas";
+                feedbackCourriel.innerText = msgCourrielsCorrespondentPas;
             else
-                feedbackCourriel.innerText = "Vous devez confirmer l'adresse courriel";
+                feedbackCourriel.innerText = msgCourrielVide;
         } else { // Les adresses courriels correspondent
             confirmationCourriel.setCustomValidity("");
         }

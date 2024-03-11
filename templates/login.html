@@ -7,25 +7,27 @@
                 <h3 class="alert-heading">{{ message }}</h3>
             </div>
         {% endif %}
-        <form id="formulaire" class="d-flex flex-column align-items-center needs-validation" method="post"
+        <form id="formulaire" class="d-flex flex-lg-column align-items-center needs-validation" method="post"
               action="{{ url_for('traitement_login') }}" novalidate>
             <h2 class="mb-3">{{ nom_page }}</h2>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
-                <input required class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant"
-                   placeholder="Entrez votre identifiant">
-                <div id="identifiant" class="invalid-feedback">Veuillez remplir ce champ</div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label font-weight-bold fs-5" for="mot_de_passe">Mot de passe</label>
-                <input required class="form-control border border-dark border-2" id="mot_de_passe" type="password" name="mot_de_passe"
-                   placeholder="Entrez votre mot de passe">
-                <div id="mot_de_passe" class="invalid-feedback">Veuillez remplir ce champ</div>
+            <div style="width: 60%;" class="mb-3">
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
+                    <input required class="form-control border border-dark border-2" id="identifiant"
+                           type="text" name="identifiant" placeholder="Entrez votre identifiant">
+                    <div id="feedback_identifiant" class="invalid-feedback">Veuillez remplir ce champ</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold fs-5" for="mot_de_passe">Mot de passe</label>
+                    <input  required class="form-control border border-dark border-2" id="mot_de_passe"
+                           type="password" name="mot_de_passe" placeholder="Entrez votre mot de passe">
+                    <div id="feedback_mot_de_passe" class="invalid-feedback">Veuillez remplir ce champ</div>
+                </div>
             </div>
             <button class="btn btn-primary btn-lg" type="submit">Soumettre</button>
         </form>
     </div>
-    <!-- Script pour le formulaires -->
+    <!-- Script pour le formulaire -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Gestion du formulaire

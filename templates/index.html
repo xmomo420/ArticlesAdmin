@@ -1,10 +1,11 @@
 {% extends "template.html" %}
 {% block content %}
 <!-- Barre de recherche -->
-<div style="width: 20%" class="container mt-5 pt-4 position-relative">
+<div style="width: 40%" class="container mt-5 pt-4 position-relative">
     <form method="post" action="{{ url_for('recherche') }}" class="d-flex needs-validation" novalidate>
        <label for="recherche" class="form-label"></label>
-       <input pattern=".*\S+.*" name="recherche" class="form-control me-2" type="search" placeholder="Search" aria-label="Search" required>
+       <input pattern=".*\S+.*" name="recherche" class="form-control me-2" type="search"
+              placeholder="Indiquez un patron à rechercher" aria-label="recherche" required>
        <button class="btn btn-success" type="submit">Rechercher</button>
         <div class="invalid-feedback position-absolute top-0 start-0 translate-middle-x translate-middle-y text-center">
             Recherche vide impossible
@@ -39,7 +40,6 @@
     </div>
 </div>
 
-<!-- TODO : Si le ce n'est pas le dernier élément de la liste, inclure le <hr> -->
 {% if not loop.last %}
 	<!-- Ligne distincte délimitant les articles -->
     <hr class="my-4 border border-black border-top border-5 mt-5 container text-center">
@@ -52,7 +52,7 @@
   'use strict'
 
   // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  var forms = document.querySelectorAll('.needs-validation')
+  const forms = document.querySelectorAll('.needs-validation');
 
   // Loop over them and prevent submission
   Array.prototype.slice.call(forms)

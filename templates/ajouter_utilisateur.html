@@ -37,7 +37,7 @@
                 <label class="form-label font-weight-bold fs-5" for="identifiant">Identifiant</label>
                 <input required class="form-control border border-dark border-2" id="identifiant" type="text" name="identifiant"
                     placeholder="Choisissez un identifiant" value="{{ identifiant }}">
-                <div id="feedbackIdentifiant" class="invalid-feedback">Un identifiant ne peut pas être vide</div>
+                <div id="feedback_identifiant" class="invalid-feedback">Un identifiant ne peut pas être vide</div>
             </div>
             <!-- Courriel -->
             <div class="col-md-6">
@@ -51,7 +51,7 @@
                 <label class="form-label font-weight-bold fs-5" for="confirmation_courriel">Confirmation courriel</label>
                 <input required class="form-control border border-dark border-2" id="confirmation_courriel" type="email"
                        placeholder="Confirmez l'adresse courriel" name="confirmation_courriel">
-                <div id="feedbackCourriel" class="invalid-feedback">Vous devez confirmer l'adresse courriel</div>
+                <div id="feedback_courriel" class="invalid-feedback">Vous devez confirmer l'adresse courriel</div>
             </div>
             <!-- Mot de passe -->
             <div class="col-md-6">
@@ -66,7 +66,7 @@
                         <li class="list-bullet">Au moins 8 caractères</li>
                         <li class="list-bullet">Au moins 1 lettre majuscule</li>
                         <li class="list-bullet">Au moins 1 lettre minuscule</li>
-                        <li class="list-bullet">Au moins 1 caractère spécial (!@#$%^&*-,)</li>
+                        <li class="list-bullet">Au moins 1 caractère spécial parmi les suivants (!@#$%^&*-,)</li>
                     </ul>
                 </div>
             </div>
@@ -76,7 +76,7 @@
                 <input required class="form-control border border-dark border-2" id="confirmation_mot_de_passe"
                        placeholder="Confirmez le mot de passe" type="password" name="confirmation_mot_de_passe"
                        pattern="^(?=.*[!@#\$%\^&\*\-,])(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$">
-                <div id="feedBackMdp" class="invalid-feedback">Vous devez confirmer le mot de passe</div>
+                <div id="feedback_mdp" class="invalid-feedback">Vous devez confirmer le mot de passe</div>
             </div>
             <!-- Photo de profil -->
             <div class="col-md-6">
@@ -96,16 +96,18 @@
         </form>
     </div>
 
-<!-- Script pour le formulaires -->
+<!-- Script pour le formulaire -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Pour le champs identifiant
+    // Pour le champ identifiant
     const listeUsernames = {{ list_username | safe }};
-    let messageFeedbackId = document.getElementById("feedbackIdentifiant");
+    let messageFeedbackId = document.getElementById("feedback_identifiant");
     const identifiant = document.getElementById('identifiant');
+    const msgIdentifiantVide = "Un identifiant ne peut pas être vide";
+    // Ajouter des constantes pour le message d'erreur
     identifiant.addEventListener('input', function() {
-      // Si le champs n'est pas vide
+      // Si le champ n'est pas vide
       if (identifiant.value.trim() !== '') {
         // Si la liste des identifiants contient l'identifiant entré
         if (listeUsernames.includes(identifiant.value.trim())) {
@@ -115,21 +117,24 @@ document.addEventListener('DOMContentLoaded', function() {
             identifiant.setCustomValidity("");
         }
       } else
-          messageFeedbackId.innerText = "Un identifiant ne peut pas être vide";
+          messageFeedbackId.innerText = msgIdentifiantVide;
     });
 
     // Pour les champs mot de passes
     const motDePasse = document.getElementById('mot_de_passe');
     const confirmationMotDePasse = document.getElementById('confirmation_mot_de_passe');
-    const feedbackMdp = document.getElementById('feedBackMdp');
+    const feedbackMdp = document.getElementById('feedback_mdp');
+    const msgMdpVide = "Vous devez confirmer le mot de passe";
+    const msgMdpCorrespondentPas = "Les mots de passe ne correspondent pas";
+    // Ajouter des constantes pour le message d'erreur
     function verifierMotsDePasse() {
         // Si les mots de passe ne correspondent pas
         if (confirmationMotDePasse.value.trim() !== motDePasse.value.trim()) {
-            confirmationMotDePasse.setCustomValidity("Les mots de passe ne correspondent pas");
+            confirmationMotDePasse.setCustomValidity(msgMdpCorrespondentPas);
             if (confirmationMotDePasse.value.trim() !== '') // Champ rempli
-                feedbackMdp.innerText = "Les mots de passe ne correspondent pas";
+                feedbackMdp.innerText = msgMdpCorrespondentPas;
             else // Champ vide
-                feedbackMdp.innerText = "Vous devez confirmer le mot de passe";
+                feedbackMdp.innerText = msgMdpVide;
         } else { // Mots de passe correspondent
             confirmationMotDePasse.setCustomValidity("");
         }
@@ -144,15 +149,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Pour l'adresse courriel
     const courriel = document.getElementById('courriel');
     const confirmationCourriel = document.getElementById('confirmation_courriel');
-    const feedbackCourriel = document.getElementById('feedbackCourriel');
+    const feedbackCourriel = document.getElementById('feedback_courriel');
+    const msgCourrielVide = "Vous devez confirmer votre courriel";
+    const msgCourrielsCorrespondentPas = "Les adresses courriels ne correspondent pas";
+    // Ajouter des constantes pour le message d'erreur
     function verifierCorrespondanceCourriels() {
         // Si les adresses courriels ne sont pas les mêmes
         if (confirmationCourriel.value.trim() !== courriel.value.trim()) {
-            confirmationCourriel.setCustomValidity("Les adresses courriels ne correspondent pas");
+            confirmationCourriel.setCustomValidity(msgCourrielsCorrespondentPas);
             if (confirmationCourriel.value.trim() !== '') // Si le champ n'est pas vide
-                feedbackCourriel.innerText = "Les adresses courriels ne correspondent pas";
+                feedbackCourriel.innerText = msgCourrielsCorrespondentPas;
             else
-                feedbackCourriel.innerText = "Vous devez confirmer l'adresse courriel";
+                feedbackCourriel.innerText = msgCourrielVide;
         } else { // Les adresses courriels correspondent
             confirmationCourriel.setCustomValidity("");
         }
